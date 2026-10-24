@@ -41,7 +41,7 @@ class AppConfig {
   static const int maxStorageMb = 500;
 
   // Gemini & EcoBot
+  // Build-time values are extractable from client apps; use only for local testing.
   static const String defaultGeminiModel = 'gemini-1.5-flash';
-  static const String defaultGeminiApiKey = 'AIzaSyC3eErZlf5RbF7yCdLYR78fpORMFhZ-KY4';
+  static const String defaultGeminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
 }
-

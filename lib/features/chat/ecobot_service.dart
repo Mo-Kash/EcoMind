@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/config/app_config.dart';
 import '../rules/disposal_rules_service.dart';
 
@@ -72,22 +71,13 @@ class EcoBotService {
     required String userMessage,
     required List<ChatMessage> conversationHistory,
     String? itemContextJson,
-    String? apiKey,
   }) async {
     // 1. Local keyword prefilter check
     if (isLocallyOffTopic(userMessage)) {
       return fixedRefusalMessage;
     }
 
-    String effectiveKey = apiKey ?? '';
-    if (effectiveKey.isEmpty) {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        effectiveKey = prefs.getString('gemini_api_key') ?? AppConfig.defaultGeminiApiKey;
-      } catch (_) {
-        effectiveKey = AppConfig.defaultGeminiApiKey;
-      }
-    }
+    final effectiveKey = AppConfig.defaultGeminiApiKey;
 
     if (effectiveKey.isEmpty) {
       // Offline fallback using local knowledge base
@@ -159,4 +149,3 @@ class EcoBotService {
     }
   }
 }
-

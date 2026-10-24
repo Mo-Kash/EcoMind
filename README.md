@@ -120,7 +120,7 @@ lib/
 │   ├── hitl/                # CorrectionSheet & DatasetExporter (ZIP with COCO/CSV)
 │   ├── inspector/           # PipelineInspectorScreen (stage metrics & profiling)
 │   ├── history/             # HistoryScreen (local past scans & deletion)
-│   └── settings/            # SettingsScreen (toggles, Gemini key, data wipe)
+│   └── settings/            # SettingsScreen (toggles, data wipe, privacy)
 └── main.dart
 assets/
 ├── models/

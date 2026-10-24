@@ -101,7 +101,7 @@ The buyer feed listens to collection snapshots. Profile, edit-profile, seller-li
 - **Image selection:** `image_picker` supports camera and gallery selection.
 - **Chatbot service:** `lib/chatbot/gemini_service.dart` makes HTTP requests to the Google Generative Language API and handles basic greeting, relevance-classification, and response-generation steps.
 
-The Gemini API credential is currently embedded in application source. It is intentionally not reproduced in this report. Before distribution, it should be removed from client code, replaced with an appropriately protected configuration/proxy approach, and any exposed credential should be rotated.
+The client does not provide an API-key entry field. A build-time Gemini key, if configured, is still extractable from a distributed app; production cloud requests should be routed through a protected backend with the key stored as a server-side secret. Rotate any credential previously embedded in or entered into the app.
 
 ## 5. Repository layout
 
@@ -173,7 +173,7 @@ Platform release builds also require production signing and deployment configura
 
 The following points are based on the code currently present and should be considered before treating the project as production-ready:
 
-1. **Chat API credential handling:** a Gemini credential is embedded in source. Move API access behind a protected service or otherwise prevent distribution of a reusable secret; rotate the existing credential if it has been shared.
+1. **Chat API credential handling:** a build-time Gemini credential is extractable from a distributed client. Move API access behind a protected service with a server-side secret; rotate any credential previously embedded in or entered into the app.
 2. **Marketplace completion:** “BUY” opens seller details; no transaction, payment, order state, or buyer-to-seller messaging flow is implemented.
 3. **Listing identity and lifecycle:** product details are stored inside per-user documents. The listing form stores name, price, and category, while buyer filtering looks for a `sellerUid` value. Verify ownership filtering and listing lifecycle behavior as the marketplace is completed.
 4. **Rewards:** reward points are stored and displayed, but the inspected app code does not implement an award/accrual flow.

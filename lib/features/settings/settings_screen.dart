@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/config/app_config.dart';
 import '../../data/local/app_database.dart';
 import '../hitl/dataset_exporter.dart';
 
@@ -15,28 +14,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _autoEnhancement = true;
   bool _enableTTA = true;
   Map<String, dynamic> _stats = {};
-  final TextEditingController _apiKeyController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadStats();
-    _loadApiKey();
+    _removeLegacyApiKey();
   }
 
-  Future<void> _loadApiKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedKey = prefs.getString('gemini_api_key') ?? AppConfig.defaultGeminiApiKey;
-    _apiKeyController.text = savedKey;
-  }
-
-  Future<void> _saveApiKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('gemini_api_key', _apiKeyController.text.trim());
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gemini API key updated successfully!')),
-      );
+  Future<void> _removeLegacyApiKey() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('gemini_api_key');
+    } on Exception {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not remove the previously saved Gemini key from this device.'),
+          ),
+        );
+      }
     }
   }
 
@@ -138,47 +135,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // EcoBot & Gemini Cloud Inference
-          _buildSectionHeader('EcoBot AI Configuration'),
+          // EcoBot configuration is managed outside the client app.
+          _buildSectionHeader('EcoBot'),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Gemini API Key',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Required for live cloud responses with Gemini 1.5 Flash. If blank, EcoBot automatically falls back to offline municipal rules.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _apiKeyController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: 'AIzaSy...',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: _saveApiKey,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        textStyle: const TextStyle(fontSize: 13),
-                      ),
-                      child: const Text('Save Key'),
-                    ),
-                  ),
-                ],
+            child: const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'No API key is managed here. A build-time key can enable cloud replies for local '
+                'testing, but is extractable from the app. Production cloud access should use a '
+                'protected backend; offline disposal guidance remains available.',
               ),
             ),
           ),
@@ -277,4 +243,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-
