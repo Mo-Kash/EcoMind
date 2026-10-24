@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "applicable_classes": ["paper", "cardboard", "plastic", "glass", "metal"],
+  "mask_erosion_pixels": 4,
+  "min_connected_component_ratio": 0.005,
+  "residue_rule": {
+    "hue_diff_threshold_deg": 15.0,
+    "min_saturation": 90,
+    "min_value": 60
+  },
+  "stain_rule": {
+    "value_factor": 0.60,
+    "saturation_factor": 1.0
+  },
+  "levels": {
+    "clean_max": 0.10,
+    "light_max": 0.30
+  }
+}
+

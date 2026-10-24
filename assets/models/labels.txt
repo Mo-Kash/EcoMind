@@ -1,0 +1,9 @@
+cardboard
+paper
+plastic
+glass
+metal
+organic
+battery_ewaste
+textile
+general_trash

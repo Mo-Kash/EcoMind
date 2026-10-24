@@ -1,28 +1,35 @@
-import 'package:ecomind/models/user.dart';
-import 'package:ecomind/screens/wrapper.dart';
-import 'package:ecomind/services/auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'core/theme/app_theme.dart';
+import 'features/home/home_screen.dart';
+import 'features/rules/disposal_rules_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
+
+  // Initialize offline rules engine
+  await DisposalRulesService.instance.initialize();
+
+  // Gracefully initialize Firebase if configured
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint("Firebase initialization skipped or pending configuration: $e");
+  }
+
+  runApp(const EcoMindApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class EcoMindApp extends StatelessWidget {
+  const EcoMindApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return StreamProvider<UserObj?>.value(
-      initialData: null,
-      value: AuthService().user,
-      child: MaterialApp(
-        home: Wrapper(),
-      ),
+    return MaterialApp(
+      title: 'EcoMind',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      home: const HomeScreen(),
     );
   }
 }

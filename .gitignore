@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Python & ML Datasets / Training Checkpoints
+data/
+raw_data/
+processed_dataset/
+calibration_data/
+runs/
+models_output/
+*.pt
+*.onnx
+*.zip
+__pycache__/

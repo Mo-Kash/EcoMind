@@ -1,0 +1,264 @@
+{
+  "regional_profile": "india_swm_3stream",
+  "profile_name": "India Solid Waste Management (SWM Rules 2016)",
+  "streams": {
+    "wet_waste": {
+      "name": "Wet Waste (Biodegradable)",
+      "color_name": "Green",
+      "hex_color": "#2E7D32",
+      "destination": "Composting / Bio-methanation Facility"
+    },
+    "dry_waste": {
+      "name": "Dry Recyclable Waste",
+      "color_name": "Blue",
+      "hex_color": "#1565C0",
+      "destination": "Authorized Material Recovery Facility (MRF) / Recycler"
+    },
+    "domestic_hazardous": {
+      "name": "Domestic Hazardous & E-Waste",
+      "color_name": "Red / Black",
+      "hex_color": "#C62828",
+      "destination": "Designated hazardous collection center / Authorised e-waste dismantler"
+    },
+    "general_reject": {
+      "name": "Non-Recyclable Reject Waste",
+      "color_name": "Black",
+      "hex_color": "#424242",
+      "destination": "Waste-to-Energy or Engineered Sanitary Landfill"
+    }
+  },
+  "rules": {
+    "cardboard": {
+      "class": "cardboard",
+      "display_name": "Cardboard",
+      "bin_stream": "dry_waste",
+      "recyclable": true,
+      "reusable": true,
+      "prep_steps": [
+        "Flatten boxes to save bin space",
+        "Remove all shipping tape, staples, and plastic labels",
+        "Keep strictly dry"
+      ],
+      "tips": "Flattened corrugated cardboard can be recycled up to 5-7 times.",
+      "if_contamination": {
+        "light": {
+          "bin_stream": "dry_waste",
+          "advice": "Tear off or cut out the stained portion. Recycle clean dry parts in the Blue bin.",
+          "recyclable": true
+        },
+        "heavy": {
+          "bin_stream": "wet_waste",
+          "advice": "Heavily grease/food soaked cardboard (e.g., pizza base) cannot be recycled. Shred and compost in Green bin or discard in Reject.",
+          "recyclable": false
+        }
+      }
+    },
+    "paper": {
+      "class": "paper",
+      "display_name": "Paper",
+      "bin_stream": "dry_waste",
+      "recyclable": true,
+      "reusable": true,
+      "prep_steps": [
+        "Remove any plastic film, spiral bindings, or metal clips",
+        "Keep clean and dry",
+        "Do not shred unless containing private information"
+      ],
+      "tips": "Clean newspapers, books, cartons, and paper bags belong in the Blue bin.",
+      "if_contamination": {
+        "light": {
+          "bin_stream": "dry_waste",
+          "advice": "Tear away soiled sections; dispose of clean paper in the Blue bin.",
+          "recyclable": true
+        },
+        "heavy": {
+          "bin_stream": "general_reject",
+          "advice": "Wet, oily, or wax-coated paper cannot be recycled. Dispose in Reject waste.",
+          "recyclable": false
+        }
+      }
+    },
+    "plastic": {
+      "class": "plastic",
+      "display_name": "Plastic",
+      "bin_stream": "dry_waste",
+      "recyclable": true,
+      "reusable": true,
+      "prep_steps": [
+        "Empty all liquid and scrape food remnants",
+        "Rinse lightly and let air dry",
+        "Compress bottles and recap before binning"
+      ],
+      "tips": "Rigid plastics like PET bottles (#1) and HDPE containers (#2) are widely recycled.",
+      "if_contamination": {
+        "light": {
+          "bin_stream": "dry_waste",
+          "advice": "Give a quick rinse with waste water to avoid attracting pests, then place in Blue bin.",
+          "recyclable": true
+        },
+        "heavy": {
+          "bin_stream": "dry_waste",
+          "advice": "Wash and dry thoroughly. Unwashed greasy plastic fouls recycling sorting equipment.",
+          "recyclable": true
+        }
+      }
+    },
+    "glass": {
+      "class": "glass",
+      "display_name": "Glass",
+      "bin_stream": "dry_waste",
+      "recyclable": true,
+      "reusable": true,
+      "prep_steps": [
+        "Rinse residue thoroughly",
+        "Remove metal lids or plastic rings",
+        "Handle carefully to prevent breakage"
+      ],
+      "tips": "Glass is 100% recyclable indefinitely without loss of purity or quality.",
+      "attributes_by_color": {
+        "clear": "Clear (Flint) glass has the highest recycling demand. Place in Blue bin.",
+        "green": "Green glass is sorted separately at MRF facilities for colored bottle re-melting.",
+        "brown": "Brown (Amber) glass protects UV-sensitive beverages and is recycled back into amber bottles.",
+        "other": "Mirrors, window panes, and borosilicate glassware contain additives; do not mix with regular container glass."
+      },
+      "if_contamination": {
+        "light": {
+          "bin_stream": "dry_waste",
+          "advice": "Rinse bottle before placing in Blue bin.",
+          "recyclable": true
+        },
+        "heavy": {
+          "bin_stream": "dry_waste",
+          "advice": "Clean off dried sludge or food thoroughly before recycling.",
+          "recyclable": true
+        }
+      }
+    },
+    "metal": {
+      "class": "metal",
+      "display_name": "Metal",
+      "bin_stream": "dry_waste",
+      "recyclable": true,
+      "reusable": true,
+      "prep_steps": [
+        "Empty completely and rinse cans",
+        "Tuck sharp tin lids inside cans",
+        "Crush aluminum beverage cans to save space"
+      ],
+      "tips": "Aluminum and steel cans save up to 95% energy when recycled compared to raw bauxite ore smelting.",
+      "if_contamination": {
+        "light": {
+          "bin_stream": "dry_waste",
+          "advice": "Rinse off food particles and place in Blue bin.",
+          "recyclable": true
+        },
+        "heavy": {
+          "bin_stream": "dry_waste",
+          "advice": "Wash with water. If containing hazardous chemicals/paints, take to Red bin instead.",
+          "recyclable": true
+        }
+      }
+    },
+    "organic": {
+      "class": "organic",
+      "display_name": "Organic / Food Waste",
+      "bin_stream": "wet_waste",
+      "recyclable": false,
+      "reusable": true,
+      "prep_steps": [
+        "Do not wrap in plastic or polybags",
+        "Drain excess liquids before binning",
+        "Drop into home compost bin or green municipal collection"
+      ],
+      "tips": "Organic waste produces nutrient-rich compost or biogas when segregated at source.",
+      "if_contamination": {
+        "light": {
+          "bin_stream": "wet_waste",
+          "advice": "Compostable in Green bin.",
+          "recyclable": false
+        },
+        "heavy": {
+          "bin_stream": "wet_waste",
+          "advice": "Compostable in Green bin.",
+          "recyclable": false
+        }
+      }
+    },
+    "battery_ewaste": {
+      "class": "battery_ewaste",
+      "display_name": "Battery & E-Waste",
+      "bin_stream": "domestic_hazardous",
+      "recyclable": true,
+      "reusable": false,
+      "prep_steps": [
+        "NEVER dispose in regular Blue or Green household bins",
+        "Tape lithium-ion battery terminals with clear tape to prevent short circuits and fires",
+        "Store in a dry cool box away from sunlight"
+      ],
+      "tips": "Batteries and electronics contain heavy metals (lead, cadmium, lithium) and must go to certified e-waste recyclers.",
+      "if_contamination": {
+        "light": {
+          "bin_stream": "domestic_hazardous",
+          "advice": "Deliver to municipal hazardous collection booth or electronic retailer drop-off bin.",
+          "recyclable": true
+        },
+        "heavy": {
+          "bin_stream": "domestic_hazardous",
+          "advice": "If leaking or corroded, handle with gloves, place in a sealed bag, and take to hazardous collection.",
+          "recyclable": false
+        }
+      }
+    },
+    "textile": {
+      "class": "textile",
+      "display_name": "Textile & Clothing",
+      "bin_stream": "dry_waste",
+      "recyclable": true,
+      "reusable": true,
+      "prep_steps": [
+        "If wearable, donate to charity or local NGOs",
+        "Worn-out textiles can be repurposed as cleaning rags",
+        "Keep clean and dry before binning"
+      ],
+      "tips": "Clean fabric scraps and rags go into the Blue dry waste stream for fiber upcycling.",
+      "if_contamination": {
+        "light": {
+          "bin_stream": "dry_waste",
+          "advice": "Wash and dry, then reuse or deposit in dry waste bin.",
+          "recyclable": true
+        },
+        "heavy": {
+          "bin_stream": "general_reject",
+          "advice": "Soiled with oil, paint or chemical residues? Dispose in Reject black bin.",
+          "recyclable": false
+        }
+      }
+    },
+    "general_trash": {
+      "class": "general_trash",
+      "display_name": "General Trash / Reject",
+      "bin_stream": "general_reject",
+      "recyclable": false,
+      "reusable": false,
+      "prep_steps": [
+        "Ensure no recyclable items are mixed in",
+        "Wrap sanitary waste securely before placing in reject bin",
+        "Keep separate from wet organic waste"
+      ],
+      "tips": "This waste goes to landfill or waste-to-energy plants. Aim to minimize non-recyclable purchases.",
+      "if_contamination": {
+        "light": {
+          "bin_stream": "general_reject",
+          "advice": "Discard in Black reject bin.",
+          "recyclable": false
+        },
+        "heavy": {
+          "bin_stream": "general_reject",
+          "advice": "Discard in Black reject bin.",
+          "recyclable": false
+        }
+      }
+    }
+  }
+}
+

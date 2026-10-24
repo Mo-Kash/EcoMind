@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "575285444540",
-    "project_id": "ecomind-217a0",
-    "storage_bucket": "ecomind-217a0.firebasestorage.app"
+    "project_number": "1065732826322",
+    "project_id": "ecomind-149c7",
+    "storage_bucket": "ecomind-149c7.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:575285444540:android:ec43cec17a43205bc2b5b9",
+        "mobilesdk_app_id": "1:1065732826322:android:60ff7129c5516cc54af90b",
         "android_client_info": {
           "package_name": "com.kbm.ecomind"
         }
@@ -15,7 +15,26 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBQrAWosql_F3tViQz_zpamLPp_FMUWBhM"
+          "current_key": "AIzaSyC3eErZlf5RbF7yCdLYR78fpORMFhZ-KY4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1065732826322:android:60ff7129c5516cc54af90b",
+        "android_client_info": {
+          "package_name": "com.android.application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3eErZlf5RbF7yCdLYR78fpORMFhZ-KY4"
         }
       ],
       "services": {
