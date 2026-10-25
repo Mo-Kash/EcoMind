@@ -26,12 +26,13 @@ class PipelineInspectorScreen extends StatelessWidget {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMetricRow('Quality Status', scan.qualityMetrics.status.toUpperCase(),
+                _buildMetricRow(
+                    'Quality Status', scan.qualityMetrics.status.toUpperCase(),
                     isHighlighted: true),
                 _buildMetricRow('Laplacian Blur Variance',
                     scan.qualityMetrics.blurVariance.toStringAsFixed(2)),
-                _buildMetricRow(
-                    'Mean Luminance (Luma)', scan.qualityMetrics.meanLuma.toStringAsFixed(1)),
+                _buildMetricRow('Mean Luminance (Luma)',
+                    scan.qualityMetrics.meanLuma.toStringAsFixed(1)),
                 _buildMetricRow('Saturated Pixels',
                     '${(scan.qualityMetrics.clippedPixelShare * 100).toStringAsFixed(1)}%'),
                 const SizedBox(height: 8),
@@ -55,37 +56,42 @@ class PipelineInspectorScreen extends StatelessWidget {
               children: [
                 _buildFeatureCheck('Gray-World White Balance',
                     scan.enhancementLog.whiteBalanceApplied),
+                _buildFeatureCheck('Adaptive Contrast / CLAHE',
+                    scan.enhancementLog.claheApplied),
                 _buildFeatureCheck(
-                    'Adaptive Contrast / CLAHE', scan.enhancementLog.claheApplied),
-                _buildFeatureCheck('Gamma Adjustment',
-                    scan.enhancementLog.gammaApplied,
-                    note: 'Gamma: ${scan.enhancementLog.gammaValue.toStringAsFixed(2)}'),
+                    'Gamma Adjustment', scan.enhancementLog.gammaApplied,
+                    note:
+                        'Gamma: ${scan.enhancementLog.gammaValue.toStringAsFixed(2)}'),
                 _buildFeatureCheck('Unsharp Mask Sharpening',
                     scan.enhancementLog.sharpenApplied),
                 const SizedBox(height: 8),
                 Text(
                   'Enhancement Latency: ${scan.enhancementLog.elapsedMs} ms (Isolate budget <= 150 ms)',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 12),
           _buildStageCard(
-            title: '3. Image Comparison (Before vs After)',
+            title: '3. Image Comparison (Raw vs DIP Conditioned)',
             icon: Icons.compare,
             content: Row(
               children: [
                 Expanded(
                   child: Column(
                     children: [
-                      const Text('Original', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('Raw Capture',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 6),
                       AspectRatio(
                         aspectRatio: 1.0,
                         child: origFile.existsSync()
                             ? Image.file(origFile, fit: BoxFit.cover)
-                            : Container(color: Colors.black12, child: const Icon(Icons.image)),
+                            : Container(
+                                color: Colors.black12,
+                                child: const Icon(Icons.image)),
                       ),
                     ],
                   ),
@@ -94,13 +100,16 @@ class PipelineInspectorScreen extends StatelessWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text('Enhanced', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('DIP Enhanced',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 6),
                       AspectRatio(
                         aspectRatio: 1.0,
                         child: enhFile.existsSync()
                             ? Image.file(enhFile, fit: BoxFit.cover)
-                            : Container(color: Colors.black12, child: const Icon(Icons.image)),
+                            : Container(
+                                color: Colors.black12,
+                                child: const Icon(Icons.image)),
                       ),
                     ],
                   ),
@@ -115,12 +124,13 @@ class PipelineInspectorScreen extends StatelessWidget {
             content: Column(
               children: [
                 _buildTimingRow('Quality Gate Check', '< 15 ms'),
-                _buildTimingRow('DIP Enhancement', '${scan.enhancementLog.elapsedMs} ms'),
+                _buildTimingRow(
+                    'DIP Enhancement', '${scan.enhancementLog.elapsedMs} ms'),
                 _buildTimingRow('YOLO11-seg Segmentation', '~ 120 ms'),
                 _buildTimingRow('MobileNetV3 Classification', '~ 35 ms / crop'),
                 _buildTimingRow('HSV Contamination Analysis', '~ 18 ms'),
                 const Divider(),
-                _buildTimingRow('Total Pipeline Latency',
+                _buildTimingRow('Pipeline Latency',
                     '${scan.totalElapsedMs > 0 ? scan.totalElapsedMs : 195} ms (Target <= 2.5 s)',
                     isTotal: true),
               ],
@@ -150,7 +160,8 @@ class PipelineInspectorScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -162,19 +173,31 @@ class PipelineInspectorScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricRow(String label, String value, {bool isHighlighted = false}) {
+  Widget _buildMetricRow(String label, String value,
+      {bool isHighlighted = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 13)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isHighlighted ? Colors.green.shade800 : Colors.black87,
+          Expanded(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: isHighlighted ? Colors.green.shade800 : Colors.black87,
+              ),
             ),
           ),
         ],
@@ -193,11 +216,24 @@ class PipelineInspectorScreen extends StatelessWidget {
             size: 18,
           ),
           const SizedBox(width: 8),
-          Text(name, style: const TextStyle(fontSize: 13)),
-          if (note != null) ...[
-            const SizedBox(width: 6),
-            Text('($note)', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-          ],
+          Expanded(
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                if (note != null) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    '($note)',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -209,19 +245,27 @@ class PipelineInspectorScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            stage,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+          Expanded(
+            child: Text(
+              stage,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              ),
             ),
           ),
-          Text(
-            timing,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isTotal ? Colors.green.shade900 : Colors.black87,
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              timing,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: isTotal ? Colors.green.shade900 : Colors.black87,
+              ),
             ),
           ),
         ],
@@ -229,4 +273,3 @@ class PipelineInspectorScreen extends StatelessWidget {
     );
   }
 }
-

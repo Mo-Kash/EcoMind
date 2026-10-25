@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -26,7 +25,6 @@ class DatasetExporter {
     final csvRows = <String>['item_id,scan_id,original_class,corrected_class,detector_score,timestamp'];
     
     // 2. Build annotations.json (COCO format)
-    final cocoCategories = <Map<String, dynamic>>[];
     final cocoImages = <Map<String, dynamic>>[];
     final cocoAnnotations = <Map<String, dynamic>>[];
 
@@ -87,7 +85,7 @@ class DatasetExporter {
     final zipEncoder = ZipEncoder();
     final zipBytes = zipEncoder.encode(archive);
 
-    if (zipBytes == null) return null;
+    if (zipBytes.isEmpty) return null;
 
     final tempDir = await getTemporaryDirectory();
     final zipPath = '${tempDir.path}/ecomind_dataset_export_${DateTime.now().millisecondsSinceEpoch}.zip';

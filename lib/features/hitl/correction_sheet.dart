@@ -42,9 +42,12 @@ class CorrectionSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Correct Classification',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              const Expanded(
+                child: Text(
+                  'Correct Classification',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.close),
@@ -55,6 +58,8 @@ class CorrectionSheet extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Current Prediction: ${Taxonomy.getDisplayName(item.predictedClass)} (${(item.confidence * 100).toStringAsFixed(0)}%)',
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
             style: TextStyle(color: Colors.grey[700], fontSize: 14),
           ),
           const Divider(height: 24),
@@ -105,6 +110,7 @@ class CorrectionSheet extends StatelessWidget {
                       detectorScore: item.detectorScore,
                     );
                     item.correctedClass = opt;
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                     onCorrected();
                   },

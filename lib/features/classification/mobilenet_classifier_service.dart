@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 import '../../core/config/app_config.dart';
@@ -66,7 +65,37 @@ class MobileNetClassifierService {
       }
     }
 
-    return _processProbabilities(probabilities);
+    // Bayesian prior calibration to counteract dataset imbalance (e.g., 45% textile over-representation)
+    final calibratedProbs = _calibratePriors(probabilities);
+
+    return _processProbabilities(calibratedProbs);
+  }
+
+  /// Adjusts output probabilities by discounting over-represented training priors (e.g. 6206 textile vs 698 metal)
+  List<double> _calibratePriors(List<double> rawProbs) {
+    // Training sample counts per class in order:
+    // 0: cardboard, 1: paper, 2: plastic, 3: glass, 4: metal, 5: organic, 6: battery, 7: textile, 8: trash
+    const trainCounts = [808.0, 972.0, 794.0, 2132.0, 698.0, 837.0, 803.0, 6206.0, 612.0];
+    const meanCount = 1540.0;
+    const gamma = 0.60; // Soft temperature adjustment factor
+
+    final adjusted = List<double>.filled(rawProbs.length, 0.0);
+    double sum = 0.0;
+
+    for (int i = 0; i < rawProbs.length; i++) {
+      final priorWeight = pow(trainCounts[i] / meanCount, gamma).toDouble();
+      final val = rawProbs[i] / (priorWeight > 0 ? priorWeight : 1.0);
+      adjusted[i] = val;
+      sum += val;
+    }
+
+    if (sum > 0) {
+      for (int i = 0; i < adjusted.length; i++) {
+        adjusted[i] = (adjusted[i] / sum).clamp(0.0, 1.0);
+      }
+    }
+
+    return adjusted;
   }
 
   List<List<List<List<double>>>> _prepareInputTensor(img.Image image) {

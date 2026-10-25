@@ -135,16 +135,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // EcoBot configuration is managed outside the client app.
-          _buildSectionHeader('EcoBot'),
+          // Pure On-Device & Offline Architecture
+          _buildSectionHeader('Processing Architecture'),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'No API key is managed here. A build-time key can enable cloud replies for local '
-                'testing, but is extractable from the app. Production cloud access should use a '
-                'protected backend; offline disposal guidance remains available.',
+            child: const ListTile(
+              leading: Icon(Icons.security, color: Colors.green),
+              title: Text('100% On-Device & Private'),
+              subtitle: Text(
+                'EcoMind runs entirely offline. All digital image processing, '
+                'segmentation, and classification are performed locally on your device '
+                'with zero external API or network calls.',
               ),
             ),
           ),

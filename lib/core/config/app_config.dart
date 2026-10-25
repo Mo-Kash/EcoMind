@@ -31,17 +31,21 @@ class AppConfig {
 
   // Model asset paths
   static const String detectorModelPath = 'assets/models/yolo11n-seg.tflite';
-  static const String classifierModelPath = 'assets/models/mobilenetv3_large.tflite';
-  static const String legacyClassifierPath = 'assets/mobilenetv2_trash_classifier.tflite';
+  static const String classifierModelPath =
+      'assets/models/mobilenetv3_large.tflite';
+  static const String legacyClassifierPath =
+      'assets/mobilenetv2_trash_classifier.tflite';
   static const String labelsAssetPath = 'assets/models/labels.txt';
-  static const String disposalRulesAssetPath = 'assets/rules/disposal_rules.json';
-  static const String contaminationConfigAssetPath = 'assets/rules/contamination_config.json';
+  static const String disposalRulesAssetPath =
+      'assets/rules/disposal_rules.json';
+  static const String contaminationConfigAssetPath =
+      'assets/rules/contamination_config.json';
 
   // Storage
   static const int maxStorageMb = 500;
 
-  // Gemini & EcoBot
-  // Build-time values are extractable from client apps; use only for local testing.
-  static const String defaultGeminiModel = 'gemini-1.5-flash';
-  static const String defaultGeminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
+  // Digital Image Processing (DIP) Config
+  static const double sobelEdgeThreshold = 45.0;
+  static const double textureRoughnessThreshold = 0.15;
+  static const int histogramBins = 256;
 }

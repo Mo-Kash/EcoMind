@@ -54,3 +54,8 @@ models_output/
 *.onnx
 *.zip
 __pycache__/
+
+# Environment & Secret files
+.env
+.env.*
+!.env.example

@@ -63,6 +63,16 @@ def train_mobilenetv3(data_dir, output_dir="./models_output"):
 
     model, backbone = build_model()
     
+    # Compute balanced class weights to eliminate dominant prior bias (e.g. textile 45% vs plastic 5%)
+    # PRD Section 10.2 requirement: Balanced sampling or class weights
+    counts = {}
+    for i, cls in enumerate(CLASSES):
+        p = os.path.join(data_dir, "train", cls)
+        counts[i] = len(os.listdir(p)) if os.path.exists(p) else 1
+    total_samples = sum(counts.values())
+    class_weight = {i: total_samples / (len(CLASSES) * counts[i]) for i in range(len(CLASSES))}
+    print(f"Computed balanced class weights: {class_weight}")
+
     # Phase 1: Train classification head only
     print("=== Phase 1: Training Classification Head (Backbone Frozen) ===")
     model.compile(
@@ -70,7 +80,7 @@ def train_mobilenetv3(data_dir, output_dir="./models_output"):
         loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=0.1),
         metrics=["accuracy"]
     )
-    model.fit(train_ds, validation_data=val_ds, epochs=8)
+    model.fit(train_ds, validation_data=val_ds, epochs=8, class_weight=class_weight)
 
     # Phase 2: Unfreeze top 40% of backbone layers for fine-tuning
     print("=== Phase 2: Fine-Tuning Top Layers with Cosine Decay ===")
@@ -87,7 +97,7 @@ def train_mobilenetv3(data_dir, output_dir="./models_output"):
         loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=0.1),
         metrics=["accuracy", tf.keras.metrics.Precision(name="precision"), tf.keras.metrics.Recall(name="recall")]
     )
-    model.fit(train_ds, validation_data=val_ds, epochs=22)
+    model.fit(train_ds, validation_data=val_ds, epochs=22, class_weight=class_weight)
 
     # Save Keras Model
     keras_path = os.path.join(output_dir, "mobilenetv3_large_ecomind.keras")

@@ -9,7 +9,7 @@ class ItemCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onCorrected;
-  final Function(DetectedItem) onAskEcoBot;
+  final Function(DetectedItem) onInspectDIP;
 
   const ItemCard({
     super.key,
@@ -17,7 +17,7 @@ class ItemCard extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.onCorrected,
-    required this.onAskEcoBot,
+    required this.onInspectDIP,
   });
 
   @override
@@ -66,60 +66,70 @@ class ItemCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            guidance.displayName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (item.isCorrected) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: Colors.blue.shade200),
-                              ),
-                              child: const Text(
-                                'Corrected',
-                                style: TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ],
+                      Text(
+                        guidance.displayName,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                      if (item.isCorrected) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: const Text(
+                            'Corrected',
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 2),
                       Text(
                         'Confidence: ${(item.confidence * 100).toStringAsFixed(0)}%',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade600),
                       ),
                     ],
                   ),
                 ),
-                // Bin Stream Pill
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Color(int.parse(guidance.binStream.hexColor.replaceFirst('#', '0xFF'))),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    guidance.binStream.name.split('(')[0].trim(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                // Bin Stream Pill (defensive constraints to prevent horizontal overflow)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 120),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Color(int.parse(
+                          guidance.binStream.hexColor.replaceFirst('#', '0xFF'))),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      guidance.binStream.name.split('(')[0].trim(),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            // Contamination & Attributes Badges
+            // Contamination, Texture & Attributes Badges
             Wrap(
               spacing: 6,
               runSpacing: 4,
@@ -137,6 +147,11 @@ class ItemCard extends StatelessWidget {
                             ? Colors.orange
                             : Colors.green,
                   ),
+                if (item.surfaceTexture != null)
+                  _buildBadge(
+                    'Texture: ${item.surfaceTexture}',
+                    item.surfaceTexture == 'Smooth' ? Colors.blueGrey : Colors.brown.shade600,
+                  ),
                 if (item.glassColor != null)
                   _buildBadge('Color: ${item.glassColor}', Colors.teal),
                 _buildBadge(
@@ -145,17 +160,31 @@ class ItemCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (guidance.contaminationAdvice != null && item.contaminationLevel != 'clean') ...[
+              const SizedBox(height: 6),
+              Text(
+                guidance.contaminationAdvice!,
+                style: TextStyle(fontSize: 12, color: Colors.red.shade800, fontWeight: FontWeight.w600),
+              ),
+            ],
             const SizedBox(height: 10),
             Text(
-              guidance.prepSteps.isNotEmpty ? guidance.prepSteps.first : guidance.tips,
+              guidance.prepSteps.isNotEmpty
+                  ? guidance.prepSteps.first
+                  : guidance.tips,
               style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            // Action buttons using Wrap to prevent flex overflow on narrow displays or large system fonts
+            Wrap(
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
                 TextButton.icon(
-                  onPressed: () => CorrectionSheet.show(context, item, onCorrected),
+                  onPressed: () =>
+                      CorrectionSheet.show(context, item, onCorrected),
                   icon: const Icon(Icons.edit, size: 16),
                   label: const Text('Wrong?'),
                   style: TextButton.styleFrom(
@@ -163,14 +192,17 @@ class ItemCard extends StatelessWidget {
                     textStyle: const TextStyle(fontSize: 13),
                   ),
                 ),
-                const SizedBox(width: 8),
                 ElevatedButton.icon(
-                  onPressed: () => onAskEcoBot(item),
-                  icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                  label: const Text('Ask EcoBot'),
+                  onPressed: () => onInspectDIP(item),
+                  icon: const Icon(Icons.analytics_outlined, size: 16),
+                  label: const Text('DIP Surface Details'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    backgroundColor: Colors.teal.shade700,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -200,4 +232,3 @@ class ItemCard extends StatelessWidget {
     );
   }
 }
-

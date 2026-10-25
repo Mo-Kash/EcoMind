@@ -90,9 +90,12 @@ class CompositionDonutChart extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            '$name ($pct%)',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                          Flexible(
+                            child: Text(
+                              '$name ($pct%)',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                            ),
                           ),
                         ],
                       );

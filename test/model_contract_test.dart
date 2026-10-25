@@ -31,6 +31,12 @@ void main() {
       expect(AppConfig.confidentThreshold, equals(0.70));
       expect(AppConfig.likelyThreshold, equals(0.45));
     });
+
+    test('DIP configuration invariants', () {
+      expect(AppConfig.sobelEdgeThreshold, equals(45.0));
+      expect(AppConfig.textureRoughnessThreshold, equals(0.15));
+      expect(AppConfig.histogramBins, equals(256));
+    });
   });
 }
 

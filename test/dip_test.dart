@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:ecomind/features/dip/quality_gate.dart';
-import 'package:ecomind/features/dip/auto_enhancement.dart';
 import 'package:ecomind/features/dip/mask_utils.dart';
 import 'package:ecomind/features/dip/hsv_contamination.dart';
 import 'package:ecomind/features/dip/kmeans_color.dart';
+import 'package:ecomind/features/dip/histogram_analyzer.dart';
+import 'package:ecomind/features/dip/edge_texture_analyzer.dart';
+import 'package:ecomind/features/dip/contamination_heatmap.dart';
 
 void main() {
   group('DIP Quality Gate Tests', () {
@@ -95,6 +97,73 @@ void main() {
       );
 
       expect(color, equals('green'));
+    });
+  });
+
+  group('Histogram & Photometric Analyzer Tests', () {
+    test('Calculates 256 bins and correct dynamic range', () {
+      final image = img.Image(width: 50, height: 50);
+      img.fill(image, color: img.ColorRgb8(100, 100, 100));
+
+      final hist = HistogramAnalyzer.compute(image);
+      expect(hist.luma.length, equals(256));
+      expect(hist.totalPixels, equals(2500));
+      expect(hist.meanLuma, closeTo(100.0, 1.0));
+      expect(hist.rmsContrast, closeTo(0.0, 0.1));
+      expect(hist.entropy, closeTo(0.0, 0.01)); // Pure single tone = 0 entropy
+    });
+
+    test('Bimodal image produces non-zero entropy and dynamic range', () {
+      final image = img.Image(width: 20, height: 20);
+      for (int y = 0; y < 20; y++) {
+        for (int x = 0; x < 20; x++) {
+          final val = (x < 10) ? 50 : 200;
+          image.setPixelRgb(x, y, val, val, val);
+        }
+      }
+
+      final hist = HistogramAnalyzer.compute(image);
+      expect(hist.entropy, greaterThan(0.9)); // Half/half = ~1 bit entropy
+      expect(hist.dynamicRange, equals(150));
+      expect(hist.rmsContrast, greaterThan(50.0));
+    });
+  });
+
+  group('Sobel Edge & Texture Roughness Tests', () {
+    test('Flat image produces 0 edge density (Smooth surface)', () {
+      final flat = img.Image(width: 30, height: 30);
+      img.fill(flat, color: img.ColorRgb8(128, 128, 128));
+
+      final res = EdgeTextureAnalyzer.analyze(flat);
+      expect(res.edgeDensity, equals(0.0));
+      expect(res.surfaceTexture, equals('Smooth'));
+    });
+
+    test('High-contrast striped image produces high edge density (Textured/Rough)', () {
+      final striped = img.Image(width: 30, height: 30);
+      for (int y = 0; y < 30; y++) {
+        for (int x = 0; x < 30; x++) {
+          final v = ((x ~/ 3) % 2 == 0) ? 0 : 255;
+          striped.setPixelRgb(x, y, v, v, v);
+        }
+      }
+
+      final res = EdgeTextureAnalyzer.analyze(striped);
+      expect(res.edgeDensity, greaterThan(0.20));
+      expect(res.surfaceTexture, equals('Textured / Rough'));
+    });
+  });
+
+  group('Contamination Heatmap Tests', () {
+    test('Generates 4-channel RGBA heatmap with correct dimensions', () {
+      final image = img.Image(width: 40, height: 40);
+      img.fill(image, color: img.ColorRgb8(240, 240, 240));
+
+      final res = ContaminationHeatmapGenerator.generate(image);
+      expect(res.heatmapImage.width, equals(40));
+      expect(res.heatmapImage.height, equals(40));
+      expect(res.compositeImage.width, equals(40));
+      expect(res.soilPercentage, lessThan(5.0)); // Clean image
     });
   });
 }

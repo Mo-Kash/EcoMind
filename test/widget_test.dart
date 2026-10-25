@@ -7,13 +7,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify app title
-    expect(find.text('EcoMind 2.0'), findsOneWidget);
+    expect(find.text('EcoMind'), findsOneWidget);
 
     // Verify primary capture buttons
     expect(find.text('Take Photo'), findsOneWidget);
     expect(find.text('Gallery'), findsOneWidget);
 
-    // Verify EcoBot assistant entry
-    expect(find.text('EcoBot AI Assistant'), findsOneWidget);
+    // Verify DIP-assisted sorting pipeline entry
+    expect(find.text('DIP-Assisted Waste Sorting'), findsOneWidget);
   });
 }

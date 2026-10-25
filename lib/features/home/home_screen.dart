@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../capture/capture_screen.dart';
-import '../chat/ecobot_chat_screen.dart';
 import '../history/history_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -25,7 +24,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             Icon(Icons.eco, size: 28, color: Colors.white),
             SizedBox(width: 10),
-            Text('EcoMind 2.0'),
+            Text('EcoMind'),
           ],
         ),
         actions: [
@@ -96,14 +95,18 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
                       'India SWM 3-Stream System (Wet / Dry / Hazardous)',
-                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -140,31 +143,61 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // EcoBot Assistant Card
+            // Integrated Pipeline Overview Card
             Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(16),
-                leading: CircleAvatar(
-                  radius: 26,
-                  backgroundColor: Colors.green.shade100,
-                  child: Icon(Icons.smart_toy, color: Colors.green.shade800, size: 28),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.teal.shade50,
+                          child: Icon(Icons.auto_fix_high,
+                              color: Colors.teal.shade800, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'DIP-Assisted Waste Sorting',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                '3-Stage Pre-Processing & Classification',
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Photos are conditioned through DIP filters (Gray-World white balance, '
+                      'CLAHE contrast stretch, and unsharp sharpening) before running instance '
+                      'segmentation and material classification.',
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.35),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _buildPipelineBadge('1. DIP Filters', Colors.teal),
+                        const Icon(Icons.arrow_forward, size: 14, color: Colors.grey),
+                        _buildPipelineBadge('2. YOLO11-seg', Colors.indigo),
+                        const Icon(Icons.arrow_forward, size: 14, color: Colors.grey),
+                        _buildPipelineBadge('3. Classification', Colors.green),
+                      ],
+                    ),
+                  ],
                 ),
-                title: const Text(
-                  'EcoBot AI Assistant',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text(
-                  'Ask questions about local recycling rules, composting, or how to handle contaminated materials.',
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (ctx) => const EcoBotChatScreen()),
-                  );
-                },
               ),
             ),
             const SizedBox(height: 16),
@@ -172,9 +205,11 @@ class HomeScreen extends StatelessWidget {
             // Recent Scans Shortcut Card
             Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 leading: CircleAvatar(
                   radius: 22,
                   backgroundColor: Colors.blue.shade50,
@@ -184,7 +219,8 @@ class HomeScreen extends StatelessWidget {
                   'Local Scan History',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                subtitle: const Text('Review past classifications and export datasets'),
+                subtitle: const Text(
+                    'Review past classifications and export datasets'),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 18),
                 onTap: () {
                   Navigator.push(
@@ -199,5 +235,23 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-}
 
+  Widget _buildPipelineBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}

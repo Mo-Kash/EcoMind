@@ -24,32 +24,32 @@ class AutoEnhancement {
     bool sharpenApplied = false;
 
     // 2. White Balance (Gray-World Assumption)
-    final wbCheck = _checkWhiteBalance(current);
+    final wbCheck = checkWhiteBalance(current);
     if (wbCheck.$1) {
-      current = _applyGrayWorldWB(current, wbCheck.$2, wbCheck.$3, wbCheck.$4);
+      current = applyGrayWorldWB(current, wbCheck.$2, wbCheck.$3, wbCheck.$4);
       wbApplied = true;
     }
 
     // 3. Contrast Adjustment (Adaptive Histogram Equalization / CLAHE approx)
     if (metrics.meanLuma > 0 && (metrics.isDark || metrics.isBright)) {
-      current = _applyContrastStretch(current);
+      current = applyContrastStretch(current);
       claheApplied = true;
     }
 
     // 4. Gamma Correction
     if (metrics.isDark) {
       gammaVal = AppConfig.gammaDark;
-      current = _applyGamma(current, gammaVal);
+      current = applyGamma(current, gammaVal);
       gammaApplied = true;
     } else if (metrics.isBright) {
       gammaVal = AppConfig.gammaBright;
-      current = _applyGamma(current, gammaVal);
+      current = applyGamma(current, gammaVal);
       gammaApplied = true;
     }
 
     // 5. Mild Sharpening (Unsharp Mask)
     if (metrics.isBlurry && metrics.status != 'reject') {
-      current = _applyUnsharpMask(current);
+      current = applyUnsharpMask(current);
       sharpenApplied = true;
     }
 
@@ -79,7 +79,7 @@ class AutoEnhancement {
     }
   }
 
-  static (bool, double, double, double) _checkWhiteBalance(img.Image image) {
+  static (bool, double, double, double) checkWhiteBalance(img.Image image) {
     double sumR = 0, sumG = 0, sumB = 0;
     final total = image.width * image.height;
     if (total == 0) return (false, 1.0, 1.0, 1.0);
@@ -112,21 +112,32 @@ class AutoEnhancement {
     return (false, 1.0, 1.0, 1.0);
   }
 
-  static img.Image _applyGrayWorldWB(img.Image image, double gainR, double gainG, double gainB) {
+  static img.Image applyGrayWorldWB(img.Image image, [double? gainR, double? gainG, double? gainB]) {
+    double gR = gainR ?? 1.0;
+    double gG = gainG ?? 1.0;
+    double gB = gainB ?? 1.0;
+
+    if (gainR == null || gainG == null || gainB == null) {
+      final check = checkWhiteBalance(image);
+      gR = check.$2;
+      gG = check.$3;
+      gB = check.$4;
+    }
+
     final result = img.Image(width: image.width, height: image.height);
     for (int y = 0; y < image.height; y++) {
       for (int x = 0; x < image.width; x++) {
         final p = image.getPixel(x, y);
-        final r = (p.r * gainR).clamp(0, 255).toInt();
-        final g = (p.g * gainG).clamp(0, 255).toInt();
-        final b = (p.b * gainB).clamp(0, 255).toInt();
+        final r = (p.r * gR).clamp(0, 255).toInt();
+        final g = (p.g * gG).clamp(0, 255).toInt();
+        final b = (p.b * gB).clamp(0, 255).toInt();
         result.setPixelRgb(x, y, r, g, b);
       }
     }
     return result;
   }
 
-  static img.Image _applyContrastStretch(img.Image image) {
+  static img.Image applyContrastStretch(img.Image image, {double clipLimit = 2.5}) {
     int minR = 255, maxR = 0;
     int minG = 255, maxG = 0;
     int minB = 255, maxB = 0;
@@ -160,7 +171,7 @@ class AutoEnhancement {
     return result;
   }
 
-  static img.Image _applyGamma(img.Image image, double gamma) {
+  static img.Image applyGamma(img.Image image, double gamma) {
     final lut = List<int>.generate(256, (i) {
       return (pow(i / 255.0, gamma) * 255.0).clamp(0, 255).toInt();
     });
@@ -175,10 +186,9 @@ class AutoEnhancement {
     return result;
   }
 
-  static img.Image _applyUnsharpMask(img.Image image) {
+  static img.Image applyUnsharpMask(img.Image image, {double amount = 0.5}) {
     final blurred = img.gaussianBlur(image, radius: 1);
     final result = img.Image(width: image.width, height: image.height);
-    const double amount = 0.5;
 
     for (int y = 0; y < image.height; y++) {
       for (int x = 0; x < image.width; x++) {
