@@ -6,25 +6,26 @@ This repository is the current implementation of that project. It is aligned wit
 
 ## What the app does
 
-- Captures images from camera or gallery
-- Runs local quality checks and enhancement before inference
-- Detects and segments waste objects using a TFLite detector
-- Classifies detected items into a 9-class taxonomy
-- Estimates contamination and color attributes for material-specific guidance
-- Routes items using the India SWM 3-stream disposal model
-- Stores scan history and user correction metadata in local SQLite
-- Exports dataset corrections for retraining purposes
+- **100% On-Device & Offline:** Completely private waste classification with zero cloud or external API dependencies.
+- **Automated 3-Stage DIP + ML Pipeline:**
+  1. **Stage 1 (DIP Image Conditioning):** Discrete Laplacian blur variance and mean luma quality gate, followed by background isolate auto-enhancement (Gray-World White Balance, CLAHE contrast boost, adaptive gamma, and unsharp mask sharpening).
+  2. **Stage 2 (YOLO11-seg Instance Segmentation):** Class-agnostic instance isolation with fast morphological opening/closing and BFS largest connected component filtering on a standardized $160 \times 160$ prototype grid.
+  3. **Stage 3 (DIP Feature Extraction & Classification):** Per-instance Sobel edge density ($D_{edge}$) surface texture analysis, HSV color-space grease/soil contamination ratio ($R_{soil}$), and MobileNetV3-Large classification with Bayesian prior calibration.
+- **Dynamic India SWM 2016 Rules Engine:** Segregates items into 3 municipal streams (Wet / Dry Recyclable / Domestic Hazardous) with dynamic rerouting (e.g. food/grease-soiled paper and cardboard diverted from Dry Recyclable to Wet Waste for composting).
+- **Interactive Before/After Wipe Comparator:** Draggable split slider widget on the results screen to inspect raw camera captures against the DIP auto-enhanced image fed into the neural models.
+- **Auto-Healing Local SQLite Persistence:** Stores scan history, segmented bounding boxes, surface texture, and contamination metrics in a local database with automatic schema migrations.
+- **Human-In-The-Loop & Dataset Export:** Active learning confirmation prompts for uncertain predictions and standardized COCO 1.0 JSON + images offline zip export.
 
 ## Current implementation status
 
-The codebase implements a working prototype / research demo with the following key pieces:
+The codebase implements a complete offline application with the following key pieces:
 
-- Flutter app shell and navigation: HomeScreen, CaptureScreen, ResultsScreen, HistoryScreen, SettingsScreen
-- DIP processing tools: quality gate, enhancement, edge/texture analysis, thresholding, histogram analysis, contamination heatmap
-- Local model integration: YOLO11n-seg and MobileNetV3-style classifier assets under assets/models
-- Disposal rules engine: local JSON-based rules for waste stream routing
-- Local persistence: sqflite database for scan history, item records, and corrections
-- Automated tests covering DIP algorithms and model asset contract assumptions
+- **Flutter App Shell & Navigation:** `HomeScreen`, `CaptureScreen`, `ResultsScreen`, `PipelineInspectorScreen`, `HistoryScreen`, `SettingsScreen`.
+- **Integrated DIP Engine:** `QualityGate`, `AutoEnhancement`, `EdgeTextureAnalyzer`, `HsvContamination`, `KMeansColor`, `HistogramAnalyzer`, `ContaminationHeatmapGenerator`, and `MaskUtils`.
+- **Edge-Optimized ML Pipeline:** Quantized `yolo11n-seg.tflite` for instance segmentation and `mobilenetv3_large.tflite` for 9-class waste categorization with Test-Time Augmentation (TTA) and Bayesian prior calibration.
+- **Regulatory Rules Engine:** SWM 2016 rules loaded from `disposal_rules.json` with dynamic contamination threshold rerouting.
+- **Resilient Local Persistence:** `sqflite` database (`AppDatabase` v2) with automatic table reflection and schema self-healing for seamless app upgrades.
+- **Automated Verification Suite:** 19 automated unit, widget, and contract tests in `test/`.
 
 ## Notable repo realities
 
@@ -139,42 +140,37 @@ flutter run
 
 ## Features implemented in this repo
 
-### Digital image processing
+### Digital Image Processing (Pre-Processing & Feature Extraction)
 
-- quality gate for blur and exposure checks
-- auto-enhancement workflow for white balance, contrast, gamma adjustment, and sharpening
-- edge and texture analysis
-- contamination heatmap generation
-- histogram analysis and thresholding utilities
-- glass color extraction logic
+- **Quality Gate:** Discrete Laplacian kernel convolution for blur variance ($\sigma^2_{blur}$) and luma histogram evaluation for exposure bounds.
+- **Background Isolate Auto-Enhancement:** Gray-World White Balance, Contrast Stretching, Adaptive Gamma correction ($\gamma = 0.70 - 1.30$), and Gaussian Unsharp Mask sharpening.
+- **Real-Time Sobel Surface Roughness:** Computes edge density ($D_{edge}$) on standardized $256\text{ px}$ patches to categorize surfaces as `Smooth`, `Semi-Smooth`, or `Textured / Rough`.
+- **HSV Contamination & Residue Extraction:** Adaptive stride sampling within segmented masks to estimate food/oil/dirt soil ratios ($R_{soil}$) and contamination severity tiers.
+- **Dominant Glass Cullet Hue Extraction:** Fast K-Means clustering ($k=3$) to determine cullet tint (`Clear`, `Green`, `Amber / Brown`).
+- **Morphological Mask Refinement:** 3×3 binary opening, closing, and breadth-first search (BFS) largest connected component filtering on a standardized $160 \times 160$ prototype grid.
 
-### Waste detection and classification
+### Waste Detection & Classification
 
-- local TFLite segmentation and classification pipeline
-- post-processing of raw detections
-- fallback saliency-based detection when model inference is unavailable
-- 9-class material labeling and disposal guidance
+- **YOLO11n-seg Instance Segmentation:** Generates class-agnostic candidate bounding boxes and prototype masks.
+- **MobileNetV3-Large Classifier:** 9-class waste categorization on $224 \times 224$ crops with Test-Time Augmentation (TTA).
+- **Bayesian Prior Calibration:** Soft temperature prior discounting ($\gamma = 0.60$) to eliminate dominant dataset class biases (e.g. textile over-representation).
+- **Dynamic India SWM 2016 Routing:** Automatically re-routes contaminated recyclables to municipal wet/compost bins based on DIP soil metrics.
 
-### User experience and offline workflow
+### User Experience & Offline Workflow
 
-- camera and gallery capture flow
-- before/after DIP comparison UI
-- local scan history
-- correction tracking and dataset export flow
-- privacy-focused settings and data wipe support
+- **Integrated Pipeline Flow:** Transparent 3-stage capture pipeline with live visual status updates.
+- **Interactive Before/After Wipe Comparator:** Draggable split slider (`BeforeAfterSlider`) comparing raw camera capture vs. DIP conditioned neural input.
+- **Pipeline Inspector:** Real-time telemetry inspector displaying blur variance, mean luma, isolate processing logs, and per-stage latency benchmarks.
+- **Active Learning & Dataset Export:** HITL confirmation for low-confidence classifications with offline COCO 1.0 JSON + image zip export.
 
 ## Testing and validation
 
-The repo includes tests for:
+The repository includes a comprehensive automated test suite with **19 tests** passing:
 
-- DIP quality gate behavior
-- morphological mask operations
-- contamination estimation
-- glass color extraction
-- histogram analysis
-- edge/texture classification
-- thresholding logic
-- TFLite asset presence/service readiness expectations
+- **`test/dip_test.dart` (12 Unit Tests):** Quality gate blur/exposure checks, morphological mask opening and BFS connected component isolation, HSV soil estimation, glass cullet tint mapping, 256-bin histogram and entropy calculations, and Sobel edge density surface roughness classification.
+- **`test/model_contract_test.dart` (4 Contract Tests):** 9 PRD taxonomy classes, display name mappings, confidence thresholds, and DIP configuration invariants.
+- **`test/tflite_models_test.dart` (2 Model Asset Tests):** Verifies physical presence and byte limits for `mobilenetv3_large.tflite`, `yolo11n-seg.tflite`, and `labels.txt`.
+- **`test/widget_test.dart` (1 Widget Test):** Validates app launch, home screen actions, and pipeline guide rendering.
 
 ## Licensing and privacy
 

@@ -24,8 +24,21 @@ class EdgeTextureAnalyzer {
     img.Image src, {
     double threshold = AppConfig.sobelEdgeThreshold,
   }) {
-    final w = src.width;
-    final h = src.height;
+    // If input is large (e.g. multi-megapixel camera crop), downscale to standardized texture patch (<= 256px)
+    // to maintain fast real-time performance and prevent memory pressure on mobile devices.
+    final img.Image target;
+    if (src.width > 256 || src.height > 256) {
+      if (src.width >= src.height) {
+        target = img.copyResize(src, width: 256);
+      } else {
+        target = img.copyResize(src, height: 256);
+      }
+    } else {
+      target = src;
+    }
+
+    final w = target.width;
+    final h = target.height;
     final edgeMap = img.Image(width: w, height: h);
 
     if (w < 3 || h < 3) {
@@ -38,11 +51,11 @@ class EdgeTextureAnalyzer {
       );
     }
 
-    // Convert src to grayscale 2D luminance array for fast convolution
+    // Convert target to grayscale 2D luminance array for fast convolution
     final luma = List<List<int>>.generate(
       h,
       (y) => List<int>.generate(w, (x) {
-        final p = src.getPixel(x, y);
+        final p = target.getPixel(x, y);
         return (0.299 * p.r + 0.587 * p.g + 0.114 * p.b).round().clamp(0, 255);
       }),
     );

@@ -45,28 +45,28 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: Taxonomy.getColor(item.effectiveClass).withValues(alpha: 0.2),
-                      child: Icon(Icons.analytics_outlined, color: Taxonomy.getColor(item.effectiveClass)),
+                      backgroundColor: Taxonomy.getColor(item.effectiveClass)
+                          .withValues(alpha: 0.2),
+                      child: Icon(Icons.analytics_outlined,
+                          color: Taxonomy.getColor(item.effectiveClass)),
                     ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${Taxonomy.getDisplayName(item.effectiveClass)} DIP Surface Profile',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          '${Taxonomy.getDisplayName(item.effectiveClass)} Surface Profile',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           'Classification Confidence: ${(item.confidence * 100).toStringAsFixed(1)}%',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade600),
                         ),
                       ],
                     ),
                   ],
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(ctx),
                 ),
               ],
             ),
@@ -87,7 +87,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       _buildDiagItem(
                         'Contamination',
                         '${((item.contaminationRatio ?? 0.0) * 100).toStringAsFixed(1)}%',
-                        item.contaminationLevel == 'heavy' ? Colors.red : Colors.green,
+                        item.contaminationLevel == 'heavy'
+                            ? Colors.red
+                            : Colors.green,
                       ),
                       _buildDiagItem(
                         'Surface Status',
@@ -97,7 +99,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       _buildDiagItem(
                         'Surface Texture',
                         item.surfaceTexture ?? 'Unknown',
-                        item.surfaceTexture == 'Smooth' ? Colors.blueGrey : Colors.brown.shade700,
+                        item.surfaceTexture == 'Smooth'
+                            ? Colors.blueGrey
+                            : Colors.brown.shade700,
                       ),
                     ],
                   ),
@@ -127,12 +131,14 @@ class _ResultsScreenState extends State<ResultsScreen> {
             const SizedBox(height: 16),
 
             // Crop image preview if exists
-            if (item.cropImagePath != null && File(item.cropImagePath!).existsSync()) ...[
+            if (item.cropImagePath != null &&
+                File(item.cropImagePath!).existsSync()) ...[
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: SizedBox(
                   height: 160,
-                  child: Image.file(File(item.cropImagePath!), fit: BoxFit.contain),
+                  child: Image.file(File(item.cropImagePath!),
+                      fit: BoxFit.contain),
                 ),
               ),
               const SizedBox(height: 16),
@@ -153,9 +159,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
   Widget _buildDiagItem(String title, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
+        Text(value,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 14, color: color)),
         const SizedBox(height: 2),
-        Text(title, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+        Text(title,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
       ],
     );
   }
@@ -198,30 +207,31 @@ class _ResultsScreenState extends State<ResultsScreen> {
             // 1. Image Viewer: Toggle between Segmentation Overlays and DIP Split Wipe
             AspectRatio(
               aspectRatio: 1.0,
-              child: _showDIPWipe && origFile.existsSync() && enhFile.existsSync()
-                  ? BeforeAfterSlider.files(
-                      beforeFile: origFile,
-                      afterFile: enhFile,
-                      beforeLabel: 'RAW CAPTURE',
-                      afterLabel: 'DIP CONDITIONED',
-                    )
-                  : Stack(
-                      children: [
-                        Positioned.fill(
-                          child: enhFile.existsSync()
-                              ? Image.file(enhFile, fit: BoxFit.cover)
-                              : Container(color: Colors.black12),
-                        ),
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: MaskOverlayPainter(
-                              items: widget.scan.items,
-                              selectedItemId: _selectedItemId,
+              child:
+                  _showDIPWipe && origFile.existsSync() && enhFile.existsSync()
+                      ? BeforeAfterSlider.files(
+                          beforeFile: origFile,
+                          afterFile: enhFile,
+                          beforeLabel: 'RAW CAPTURE',
+                          afterLabel: 'CONDITIONED',
+                        )
+                      : Stack(
+                          children: [
+                            Positioned.fill(
+                              child: enhFile.existsSync()
+                                  ? Image.file(enhFile, fit: BoxFit.cover)
+                                  : Container(color: Colors.black12),
                             ),
-                          ),
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: MaskOverlayPainter(
+                                  items: widget.scan.items,
+                                  selectedItemId: _selectedItemId,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
             ),
 
             // DIP Mode Selector Bar
@@ -234,15 +244,18 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   Expanded(
                     child: Text(
                       _showDIPWipe
-                          ? 'Wipe: Raw Capture vs DIP Conditioned Input'
+                          ? 'Wipe: Raw Capture vs Conditioned Input'
                           : 'Tap an item to highlight segmentation mask',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade700),
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: () => setState(() => _showDIPWipe = !_showDIPWipe),
-                    icon: Icon(_showDIPWipe ? Icons.layers : Icons.swap_horiz, size: 16),
-                    label: Text(_showDIPWipe ? 'Show Masks' : 'DIP Wipe View'),
+                    onPressed: () =>
+                        setState(() => _showDIPWipe = !_showDIPWipe),
+                    icon: Icon(_showDIPWipe ? Icons.layers : Icons.swap_horiz,
+                        size: 16),
+                    label: Text(_showDIPWipe ? 'Show Masks' : 'Wipe View'),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.teal.shade800,
                       visualDensity: VisualDensity.compact,
@@ -261,7 +274,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   if (uncertainItem != null)
                     Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.amber.shade50,
                         borderRadius: BorderRadius.circular(10),
@@ -269,19 +283,24 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.help_outline, color: Colors.amber.shade800, size: 20),
+                          Icon(Icons.help_outline,
+                              color: Colors.amber.shade800, size: 20),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Help improve EcoMind',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  'Help improve',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13),
                                 ),
                                 Text(
-                                  'Uncertain about ${Taxonomy.getDisplayName(uncertainItem.predictedClass)}. Tap to confirm actual material.',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
+                                  'Uncertain about ${Taxonomy.getDisplayName(uncertainItem.predictedClass)}. Tap to correct',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade800),
                                 ),
                               ],
                             ),
@@ -298,7 +317,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.close, size: 16),
-                            onPressed: () => setState(() => _activeLearningDismissed = true),
+                            onPressed: () =>
+                                setState(() => _activeLearningDismissed = true),
                           ),
                         ],
                       ),
@@ -315,11 +335,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       isSelected: item.id == _selectedItemId,
                       onTap: () {
                         setState(() {
-                          _selectedItemId = _selectedItemId == item.id ? null : item.id;
+                          _selectedItemId =
+                              _selectedItemId == item.id ? null : item.id;
                         });
                       },
                       onCorrected: () => setState(() {}),
-                      onInspectDIP: (selected) => _showDIPDiagnosticsSheet(context, selected),
+                      onInspectDIP: (selected) =>
+                          _showDIPDiagnosticsSheet(context, selected),
                     );
                   }),
                   const SizedBox(height: 24),

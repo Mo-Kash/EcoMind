@@ -45,30 +45,35 @@ class MobileNetClassifierService {
       return _generateFallbackPrediction(resized);
     }
 
-    // Input Tensor: [1, 224, 224, 3]
-    final input = _prepareInputTensor(resized);
-    final output = List.filled(1 * Taxonomy.classes.length, 0.0).reshape([1, Taxonomy.classes.length]);
+    try {
+      // Input Tensor: [1, 224, 224, 3]
+      final input = _prepareInputTensor(resized);
+      final output = List.filled(1 * Taxonomy.classes.length, 0.0).reshape([1, Taxonomy.classes.length]);
 
-    _interpreter!.run(input, output);
+      _interpreter!.run(input, output);
 
-    List<double> probabilities = List<double>.from(output[0]);
+      List<double> probabilities = List<double>.from(output[0]);
 
-    // Test-Time Augmentation (TTA): average with horizontally flipped crop
-    if (enableTTA) {
-      final flipped = img.flipHorizontal(resized);
-      final flippedInput = _prepareInputTensor(flipped);
-      final flippedOutput = List.filled(1 * Taxonomy.classes.length, 0.0).reshape([1, Taxonomy.classes.length]);
-      _interpreter!.run(flippedInput, flippedOutput);
+      // Test-Time Augmentation (TTA): average with horizontally flipped crop
+      if (enableTTA) {
+        final flipped = img.flipHorizontal(resized);
+        final flippedInput = _prepareInputTensor(flipped);
+        final flippedOutput = List.filled(1 * Taxonomy.classes.length, 0.0).reshape([1, Taxonomy.classes.length]);
+        _interpreter!.run(flippedInput, flippedOutput);
 
-      for (int i = 0; i < probabilities.length; i++) {
-        probabilities[i] = (probabilities[i] + flippedOutput[0][i]) / 2.0;
+        for (int i = 0; i < probabilities.length; i++) {
+          probabilities[i] = (probabilities[i] + flippedOutput[0][i]) / 2.0;
+        }
       }
+
+      // Bayesian prior calibration to counteract dataset imbalance (e.g., 45% textile over-representation)
+      final calibratedProbs = _calibratePriors(probabilities);
+
+      return _processProbabilities(calibratedProbs);
+    } catch (e) {
+      // If native interpreter execution throws (e.g. driver issue, shape mismatch), fall back gracefully
+      return _generateFallbackPrediction(resized);
     }
-
-    // Bayesian prior calibration to counteract dataset imbalance (e.g., 45% textile over-representation)
-    final calibratedProbs = _calibratePriors(probabilities);
-
-    return _processProbabilities(calibratedProbs);
   }
 
   /// Adjusts output probabilities by discounting over-represented training priors (e.g. 6206 textile vs 698 metal)

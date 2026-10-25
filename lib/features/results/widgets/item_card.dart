@@ -110,8 +110,8 @@ class ItemCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Color(int.parse(
-                          guidance.binStream.hexColor.replaceFirst('#', '0xFF'))),
+                      color: Color(int.parse(guidance.binStream.hexColor
+                          .replaceFirst('#', '0xFF'))),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -150,7 +150,9 @@ class ItemCard extends StatelessWidget {
                 if (item.surfaceTexture != null)
                   _buildBadge(
                     'Texture: ${item.surfaceTexture}',
-                    item.surfaceTexture == 'Smooth' ? Colors.blueGrey : Colors.brown.shade600,
+                    item.surfaceTexture == 'Smooth'
+                        ? Colors.blueGrey
+                        : Colors.brown.shade600,
                   ),
                 if (item.glassColor != null)
                   _buildBadge('Color: ${item.glassColor}', Colors.teal),
@@ -160,11 +162,15 @@ class ItemCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (guidance.contaminationAdvice != null && item.contaminationLevel != 'clean') ...[
+            if (guidance.contaminationAdvice != null &&
+                item.contaminationLevel != 'clean') ...[
               const SizedBox(height: 6),
               Text(
                 guidance.contaminationAdvice!,
-                style: TextStyle(fontSize: 12, color: Colors.red.shade800, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.red.shade800,
+                    fontWeight: FontWeight.w600),
               ),
             ],
             const SizedBox(height: 10),
@@ -195,7 +201,7 @@ class ItemCard extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () => onInspectDIP(item),
                   icon: const Icon(Icons.analytics_outlined, size: 16),
-                  label: const Text('DIP Surface Details'),
+                  label: const Text('Surface Details'),
                   style: ElevatedButton.styleFrom(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

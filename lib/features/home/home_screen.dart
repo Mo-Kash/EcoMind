@@ -168,11 +168,13 @@ class HomeScreen extends StatelessWidget {
                             children: [
                               Text(
                                 'DIP-Assisted Waste Sorting',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                               Text(
                                 '3-Stage Pre-Processing & Classification',
-                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                             ],
                           ),
@@ -184,16 +186,21 @@ class HomeScreen extends StatelessWidget {
                       'Photos are conditioned through DIP filters (Gray-World white balance, '
                       'CLAHE contrast stretch, and unsharp sharpening) before running instance '
                       'segmentation and material classification.',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.35),
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade700,
+                          height: 1.35),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        _buildPipelineBadge('1. DIP Filters', Colors.teal),
-                        const Icon(Icons.arrow_forward, size: 14, color: Colors.grey),
-                        _buildPipelineBadge('2. YOLO11-seg', Colors.indigo),
-                        const Icon(Icons.arrow_forward, size: 14, color: Colors.grey),
-                        _buildPipelineBadge('3. Classification', Colors.green),
+                        _buildPipelineBadge('Filters', Colors.teal),
+                        const Icon(Icons.arrow_forward,
+                            size: 14, color: Colors.grey),
+                        _buildPipelineBadge('YOLO11-seg', Colors.indigo),
+                        const Icon(Icons.arrow_forward,
+                            size: 14, color: Colors.grey),
+                        _buildPipelineBadge('Classify', Colors.green),
                       ],
                     ),
                   ],

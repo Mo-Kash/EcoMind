@@ -75,7 +75,7 @@ class PipelineInspectorScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _buildStageCard(
-            title: '3. Image Comparison (Raw vs DIP Conditioned)',
+            title: '3. Image Comparison',
             icon: Icons.compare,
             content: Row(
               children: [
@@ -100,7 +100,7 @@ class PipelineInspectorScreen extends StatelessWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text('DIP Enhanced',
+                      const Text('Enhanced',
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 6),
                       AspectRatio(
@@ -130,7 +130,7 @@ class PipelineInspectorScreen extends StatelessWidget {
                 _buildTimingRow('MobileNetV3 Classification', '~ 35 ms / crop'),
                 _buildTimingRow('HSV Contamination Analysis', '~ 18 ms'),
                 const Divider(),
-                _buildTimingRow('Pipeline Latency',
+                _buildTimingRow('Latency',
                     '${scan.totalElapsedMs > 0 ? scan.totalElapsedMs : 195} ms (Target <= 2.5 s)',
                     isTotal: true),
               ],

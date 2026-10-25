@@ -129,103 +129,147 @@ class _CaptureScreenState extends State<CaptureScreen> {
   }
 
   Future<void> _runInferencePipeline() async {
-    setState(() {
-      _currentStep = 2;
-      _statusText = 'Object Detection: Isolating waste instances on conditioned image...';
-    });
+    try {
+      setState(() {
+        _currentStep = 2;
+        _statusText = 'Object Detection: Isolating waste instances on conditioned image...';
+      });
 
-    final stopwatch = Stopwatch()..start();
+      // Yield to let Flutter paint the stage 2 indicator
+      await Future.delayed(const Duration(milliseconds: 50));
 
-    // 1. Decode enhanced image
-    final enhancedImage = img.decodeImage(_dipResult!.enhancedBytes)!;
+      final stopwatch = Stopwatch()..start();
 
-    // 2. Initialize models
-    await _detector.initialize();
-    await _classifier.initialize();
+      // 1. Decode enhanced image
+      final enhancedImage = img.decodeImage(_dipResult!.enhancedBytes)!;
 
-    // 3. Segment waste items (YOLO11n-seg)
-    final rawDetections = await _detector.detectAndSegment(enhancedImage);
-    final refinedDetections = _detector.postProcessDetections(rawDetections);
+      // 2. Initialize models
+      await _detector.initialize();
+      await _classifier.initialize();
 
-    setState(() {
-      _currentStep = 3;
-      _statusText = 'Classification & DIP Surface Analysis: Assessing material, texture & contamination...';
-    });
+      // 3. Segment waste items (YOLO11n-seg / Saliency)
+      final rawDetections = await _detector.detectAndSegment(enhancedImage);
+      final refinedDetections = _detector.postProcessDetections(rawDetections);
 
-    // 4. Per-instance classification (MobileNetV3), Texture, Contamination, and Glass Color
-    final items = <DetectedItem>[];
-    final scanId = 'scan_${DateTime.now().millisecondsSinceEpoch}';
+      setState(() {
+        _currentStep = 3;
+        _statusText = 'Classification & DIP Surface Analysis: Assessing material, texture & contamination...';
+      });
 
-    for (int i = 0; i < refinedDetections.length; i++) {
-      final det = refinedDetections[i];
-      final itemId = '${scanId}_item_$i';
+      // Yield to let Flutter paint the stage 3 indicator
+      await Future.delayed(const Duration(milliseconds: 50));
 
-      // Crop instance with 10% padding
-      final crop = _cropInstanceWithPadding(enhancedImage, det.box);
+      // 4. Per-instance classification (MobileNetV3), Texture, Contamination, and Glass Color
+      final items = <DetectedItem>[];
+      final scanId = 'scan_${DateTime.now().millisecondsSinceEpoch}';
 
-      // Classify instance
-      final clsResult = await _classifier.classifyCrop(crop, enableTTA: true);
+      for (int i = 0; i < refinedDetections.length; i++) {
+        final det = refinedDetections[i];
+        final itemId = '${scanId}_item_$i';
 
-      // DIP Surface Texture & Roughness Analysis (Sobel Gradient)
-      final texture = EdgeTextureAnalyzer.analyze(crop);
+        // Crop instance with 10% padding
+        final crop = _cropInstanceWithPadding(enhancedImage, det.box);
 
-      // HSV contamination estimate inside mask
-      final contam = HsvContamination.analyze(
-        image: enhancedImage,
-        mask: det.mask,
-        itemClass: clsResult.topClass,
-      );
+        // Classify instance with MobileNetV3 (with TTA)
+        final clsResult = await _classifier.classifyCrop(crop, enableTTA: true);
 
-      // Glass color detection if classified as glass
-      String? glassColor;
-      if (clsResult.topClass == 'glass') {
-        glassColor = KMeansColor.extractDominantGlassColor(
+        // DIP Surface Texture & Roughness Analysis (Sobel Gradient on standardized patch)
+        final texture = EdgeTextureAnalyzer.analyze(crop);
+
+        // HSV contamination estimate inside mask
+        final contam = HsvContamination.analyze(
           image: enhancedImage,
           mask: det.mask,
+          itemClass: clsResult.topClass,
+        );
+
+        // Glass color detection if classified as glass
+        String? glassColor;
+        if (clsResult.topClass == 'glass') {
+          glassColor = KMeansColor.extractDominantGlassColor(
+            image: enhancedImage,
+            mask: det.mask,
+          );
+        }
+
+        items.add(
+          DetectedItem(
+            id: itemId,
+            scanId: scanId,
+            boundingBox: det.box,
+            predictedClass: clsResult.topClass,
+            top3Scores: clsResult.top3,
+            confidence: clsResult.confidence,
+            detectorScore: det.score,
+            contaminationRatio: contam.ratio,
+            contaminationLevel: contam.level,
+            glassColor: glassColor,
+            surfaceTexture: texture.surfaceTexture,
+            edgeDensity: texture.edgeDensity,
+          ),
         );
       }
 
-      items.add(
-        DetectedItem(
-          id: itemId,
-          scanId: scanId,
-          boundingBox: det.box,
-          predictedClass: clsResult.topClass,
-          top3Scores: clsResult.top3,
-          confidence: clsResult.confidence,
-          detectorScore: det.score,
-          contaminationRatio: contam.ratio,
-          contaminationLevel: contam.level,
-          glassColor: glassColor,
-          surfaceTexture: texture.surfaceTexture,
-          edgeDensity: texture.edgeDensity,
-        ),
+      stopwatch.stop();
+
+      // 5. Build ScanRecord and persist to SQLite
+      final scanRecord = ScanRecord(
+        id: scanId,
+        timestamp: DateTime.now(),
+        originalImagePath: _originalImagePath!,
+        enhancedImagePath: _enhancedImagePath!,
+        items: items,
+        qualityMetrics: _dipResult!.qualityMetrics,
+        enhancementLog: _dipResult!.enhancementLog,
+        totalElapsedMs: stopwatch.elapsedMilliseconds,
       );
-    }
 
-    stopwatch.stop();
+      await AppDatabase.instance.insertScan(scanRecord);
 
-    // 5. Build ScanRecord and persist to SQLite
-    final scanRecord = ScanRecord(
-      id: scanId,
-      timestamp: DateTime.now(),
-      originalImagePath: _originalImagePath!,
-      enhancedImagePath: _enhancedImagePath!,
-      items: items,
-      qualityMetrics: _dipResult!.qualityMetrics,
-      enhancementLog: _dipResult!.enhancementLog,
-      totalElapsedMs: stopwatch.elapsedMilliseconds,
-    );
-
-    await AppDatabase.instance.insertScan(scanRecord);
-
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (ctx) => ResultsScreen(scan: scanRecord),
-        ),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => ResultsScreen(scan: scanRecord),
+          ),
+        );
+      }
+    } catch (e, stack) {
+      debugPrint('Error in inference pipeline: $e\n$stack');
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Analysis Error'),
+              ],
+            ),
+            content: Text(
+              'An error occurred during analysis:\n\n$e\n\nPlease try capturing or selecting another photo.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pop(context);
+                },
+                child: const Text('Back'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _runInferencePipeline();
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 

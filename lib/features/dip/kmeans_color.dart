@@ -8,16 +8,25 @@ class KMeansColor {
     required List<List<bool>> mask,
   }) {
     final List<(int, int, int)> pixels = [];
-    final height = image.height;
-    final width = image.width;
+    final maskH = mask.length;
+    if (maskH == 0) return 'clear';
+    final maskW = mask[0].length;
+    final height = min(image.height, maskH);
+    final width = min(image.width, maskW);
 
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
+    // Sample up to ~2,000 pixels inside the mask with adaptive stride for instant clustering
+    final totalPixels = width * height;
+    final int step = totalPixels > 100000 ? max(1, sqrt(totalPixels / 10000).ceil()) : 1;
+
+    for (int y = 0; y < height; y += step) {
+      for (int x = 0; x < width; x += step) {
         if (mask[y][x]) {
           final p = image.getPixel(x, y);
           pixels.add((p.r.toInt(), p.g.toInt(), p.b.toInt()));
+          if (pixels.length >= 2000) break;
         }
       }
+      if (pixels.length >= 2000) break;
     }
 
     if (pixels.length < 30) return 'clear';

@@ -44,7 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 # Python & ML Datasets / Training Checkpoints
-data/
+/data/
 raw_data/
 processed_dataset/
 calibration_data/
@@ -59,3 +59,4 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
